@@ -1,7 +1,7 @@
 ﻿#include <iostream>
 #include <string>
 
-enum class TireType {Soft, Medium, Hard, Intermediate, Wet};
+enum class TireType {Soft, Medium, Hard, Intermediate, Wet,};
 
 class Car {
 private:
@@ -43,7 +43,7 @@ public:
 	~Car() {};
 };
 
-class Driver : public Car {
+class Driver{
 private:
 	std::string driverName;
 	std::string driverSurname;
@@ -60,7 +60,7 @@ private:
 	}
 
 	void checkDriverWeight(unsigned int weight) {
-		if (weight < 50 || weight > 90) { throw std::invalid_argument("Driver weight must be between 50 and 90 kg"); }
+		if (weight < 80 || weight > 100) { throw std::invalid_argument("Driver weight must be between 80 and 100 kg"); }
 	}
 
 	void checkDriverNumber(unsigned int number) {
