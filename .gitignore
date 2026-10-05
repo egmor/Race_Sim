@@ -17,6 +17,7 @@
 *.res
 *.docx
 *.doc
+*.vcxproj.user
 
 
 
