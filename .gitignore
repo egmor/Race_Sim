@@ -11,12 +11,6 @@
 *.sln.docstates
 *.env
 *.exe
-*.txt
-*.bin
-*.dat
-*.res
-*.docx
-*.doc
 *.vcxproj.user
 
 
