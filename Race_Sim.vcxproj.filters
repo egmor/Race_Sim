@@ -24,12 +24,21 @@
     <ClCompile Include="strategy.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="laptime.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="track.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tire.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="strategy.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="track.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

@@ -27,17 +27,17 @@ private:
 	TireType currentTire;
 	TireType nextTire;
 	unsigned int tireLaps;
-	unsigned int tireCondition; //0 to 100 (0 - new tire, 100 - death tire)
+	double tireCondition; //0 to 100 (0 - new tire, 100 - death tire)
 
 	void checkTireLaps(unsigned int tireLaps);
-	void checkTireCondition(unsigned int tireCondition);
+	void checkTireCondition(double tireCondition);
 
 public:
 
 	DriverStrategy();
 
 	DriverStrategy(EngineMode eMode, BoostMode bMode, DriverRisk dRisk, TireMode tMode, TireType cTire,
-		TireType nTire, unsigned int laps, unsigned int tireCond);
+		TireType nTire, unsigned int laps, double tireCond);
 
 	void setEngineMode(EngineMode eMode);
 	void setBoostMode(BoostMode bMode);
@@ -46,7 +46,7 @@ public:
 	void setCurrentTire(TireType cTire);
 	void setNextTire(TireType nTire);
 	void setTireLaps(unsigned int laps);
-	void setTireCondition(unsigned int cond);
+	void setTireCondition(double cond);
 
 	EngineMode getEngineMode() const;
 	BoostMode getBoostMode() const;
@@ -54,7 +54,7 @@ public:
 	TireMode getTireMode() const;
 	TireType getCurrentTire() const;
 	unsigned int getTireLaps() const;
-	unsigned int getTireCondition() const;
+	double getTireCondition() const;
 
 };
 

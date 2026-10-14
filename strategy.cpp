@@ -108,11 +108,11 @@ namespace changeStrategy {
 }
 
 void DriverStrategy::checkTireLaps(unsigned int tireLaps) {
-		if (tireLaps > 73) { throw std::invalid_argument("Incorrect data"); }
+	if (tireLaps > 73) { throw std::invalid_argument("Incorrect data"); return; }
 	}
 
-void DriverStrategy::checkTireCondition(unsigned int tireCondition) {
-	if (tireCondition > 100) { throw std::invalid_argument("incorrent data"); }
+void DriverStrategy::checkTireCondition(double tireCondition) {
+	if (tireCondition > 100) { throw std::invalid_argument("incorrent data"); return; }
 }
 
 
@@ -120,7 +120,8 @@ DriverStrategy::DriverStrategy() : engineMode(EngineMode::Standard), boostMode(B
 	tireMode(TireMode::Medium), currentTire(TireType::Medium), nextTire(TireType::Hard), tireLaps(0), tireCondition(0) {
 }
 
-DriverStrategy::DriverStrategy(EngineMode eMode, BoostMode bMode, DriverRisk dRisk, TireMode tMode, TireType cTire, TireType nTire, unsigned int laps, unsigned int tireCond) :
+DriverStrategy::DriverStrategy(EngineMode eMode, BoostMode bMode, DriverRisk dRisk,
+	TireMode tMode, TireType cTire, TireType nTire, unsigned int laps, double tireCond) :
 	engineMode(eMode), boostMode(bMode), driverRisk(dRisk), tireMode(tMode), currentTire(cTire), nextTire(nTire), tireLaps(laps), tireCondition(tireCond) {
 	checkTireLaps(laps);
 	checkTireCondition(tireCond);
@@ -136,7 +137,7 @@ void DriverStrategy::setTireLaps(unsigned int laps) {
 	checkTireLaps(laps);
 	tireLaps = laps;
 }
-void DriverStrategy::setTireCondition(unsigned int cond) {
+void DriverStrategy::setTireCondition(double cond) {
 	checkTireCondition(cond);
 	tireCondition = cond;
 }
@@ -147,4 +148,4 @@ DriverRisk DriverStrategy::getDriverRisk() const { return driverRisk; }
 TireMode DriverStrategy::getTireMode() const { return tireMode; }
 TireType DriverStrategy::getCurrentTire() const { return currentTire; }
 unsigned int DriverStrategy::getTireLaps() const { return tireLaps; }
-unsigned int DriverStrategy::getTireCondition() const { return tireCondition; }
+double DriverStrategy::getTireCondition() const { return tireCondition; }

@@ -139,13 +139,16 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="laptime.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="strategy.cpp" />
     <ClCompile Include="tire.cpp" />
+    <ClCompile Include="track.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="strategy.h" />
     <ClInclude Include="tire.h" />
+    <ClInclude Include="track.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

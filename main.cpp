@@ -8,11 +8,7 @@
 #include <string_view>
 #include "tire.h"
 #include "strategy.h"
-
-enum class RoadCondition { Dry, Wet, Damp, Drying, Flooded, };
-
-enum class WeatherCondition { Sunny, Cloudy, LightRain, Rainy, Stormy, };
-
+#include "track.h"
 
 // ======================= Car =======================
 class Car {
@@ -79,71 +75,49 @@ private:
 	unsigned int driverWeight;
 	unsigned int driverNumber;
 
-	static void checkDriverNSN(std::string_view name) {
+	// Функции теперь static и возвращают проверенное значение для списка инициализации
+	static std::string checkDriverNSN(std::string name) {
 		if (name.size() < 2 || name.size() > 20) { throw std::invalid_argument("Driver name/surname must be between 2 and 20 characters"); }
+		return name;
 	}
-
-	static void checkDriverAge(unsigned int age) {
+	static unsigned int checkDriverAge(unsigned int age) {
 		if (age < 18 || age > 45) { throw std::invalid_argument("Driver age must be between 18 and 45"); }
+		return age;
 	}
-
-	static void checkDriverWeight(unsigned int weight) {
+	static unsigned int checkDriverWeight(unsigned int weight) {
 		if (weight < 80 || weight > 100) { throw std::invalid_argument("Driver weight must be between 80 and 100 kg"); }
+		return weight;
 	}
-
-	static void checkDriverNumber(unsigned int number) {
+	static unsigned int checkDriverNumber(unsigned int number) {
 		if (number < 1 || number > 99) { throw std::invalid_argument("Driver number must be between 1 and 99"); }
+		return number;
 	}
 
 public:
-	// default constructor (значения в допустимых пределах)
-	Driver() :
-		driverName("Unknown"), driverSurname("Unknown"), driverAge(18), driverWeight(80), driverNumber(99) {
+	Driver() : driverName("Unknown"), driverSurname("Unknown"), driverAge(18), driverWeight(80), driverNumber(99) {}
+
+	// ИСПРАВЛЕНО: Принимаем строки по значению и используем std::move — это быстро и 100% безопасно
+	Driver(std::string name, std::string surname, unsigned int age, unsigned int weight, unsigned int number) :
+		driverName(checkDriverNSN(std::move(name))),
+		driverSurname(checkDriverNSN(std::move(surname))),
+		driverAge(checkDriverAge(age)),
+		driverWeight(checkDriverWeight(weight)),
+		driverNumber(checkDriverNumber(number)) {
 	}
 
-	// constructor with parameters
-	Driver(std::string_view name, const std::string& surname, unsigned int age, unsigned int weight, unsigned int number) :
-		driverName(name), driverSurname(surname), driverAge(age), driverWeight(weight), driverNumber(number) {
-		checkDriverNSN(name);
-		checkDriverNSN(surname);
-		checkDriverAge(age);
-		checkDriverWeight(weight);
-		checkDriverNumber(number);
-	}
+	void setDriverName(std::string_view name) { driverName = checkDriverNSN(std::string(name)); }
+	void setDriverSurname(std::string_view surname) { driverSurname = checkDriverNSN(std::string(surname)); }
+	void setDriverAge(unsigned int age) { driverAge = checkDriverAge(age); }
+	void setDriverWeight(unsigned int weight) { driverWeight = checkDriverWeight(weight); }
+	void setDriverNumber(unsigned int number) { driverNumber = checkDriverNumber(number); }
 
-	void setDriverName(std::string_view name) {
-		checkDriverNSN(name);
-		driverName = name;
-	}
-
-	void setDriverSurname(std::string_view surname) {
-		checkDriverNSN(surname);
-		driverSurname = surname;
-	}
-
-	void setDriverAge(unsigned int age) {
-		checkDriverAge(age);
-		driverAge = age;
-	}
-
-	void setDriverWeight(unsigned int weight) {
-		checkDriverWeight(weight);
-		driverWeight = weight;
-	}
-
-	void setDriverNumber(unsigned int number) {
-		checkDriverNumber(number);
-		driverNumber = number;
-	}
-
+	// ИСПРАВЛЕНО: возвращаем ссылки на постоянные строки (const std::string&), защищая память
 	const std::string& getDriverName() const { return driverName; }
 	const std::string& getDriverSurname() const { return driverSurname; }
 	unsigned int getDriverAge() const { return driverAge; }
 	unsigned int getDriverWeight() const { return driverWeight; }
 	unsigned int getDriverNumber() const { return driverNumber; }
 
-	// читает: <name> <surname> <age> <weight> <number> (конец строки НЕ пропускает,
-	// т.к. дальше в той же строке идут навыки для DriverSkills)
 	friend std::istream& operator>>(std::istream& is, Driver& driver) {
 		std::string name, surname;
 		unsigned int age, weight, number;
@@ -155,7 +129,6 @@ public:
 			driver.setDriverWeight(weight);
 			driver.setDriverNumber(number);
 		}
-
 		return is;
 	}
 
@@ -166,9 +139,8 @@ public:
 };
 
 // ======================= DriverSkills =======================
-class DriverSkills{
+class DriverSkills : public Driver { // ИСПРАВЛЕНО: вернули наследование
 private:
-	Driver driver;
 	unsigned int pace;
 	unsigned int experience;
 	unsigned int racecraft;
@@ -176,35 +148,32 @@ private:
 	unsigned int fuelManagement;
 	unsigned int tyreManagement;
 
-	static void checkParameter(unsigned int parameter) {
+	static unsigned int checkParameter(unsigned int parameter) {
 		if (parameter < 1 || parameter > 100) { throw std::invalid_argument("Parameter must be between 1 and 100"); }
+		return parameter;
 	}
 
 public:
-	// default constructor
-	DriverSkills() :
-		driver(), pace(50), experience(50), racecraft(50), consistency(50), fuelManagement(50), tyreManagement(50) {
-	}
+	DriverSkills() : Driver(), pace(50), experience(50), racecraft(50), consistency(50), fuelManagement(50), tyreManagement(50) {}
 
-	// constructor with parameters
-	DriverSkills(std::string_view name, const std::string& surname, unsigned int age, unsigned int weight, unsigned int number, //for Driver
+	// ИСПРАВЛЕНО: Инициализируем родительский класс, а свои поля проверяем статической функцией
+	DriverSkills(std::string name, std::string surname, unsigned int age, unsigned int weight, unsigned int number,
 		unsigned int PC, unsigned int EXP, unsigned int RC, unsigned int CT, unsigned int FM, unsigned int TM) :
-		driver(name, surname, age, weight, number),
-		pace(PC), experience(EXP), racecraft(RC), consistency(CT), fuelManagement(FM), tyreManagement(TM) {
-		checkParameter(PC);
-		checkParameter(EXP);
-		checkParameter(RC);
-		checkParameter(CT);
-		checkParameter(FM);
-		checkParameter(TM);
+		Driver(std::move(name), std::move(surname), age, weight, number),
+		pace(checkParameter(PC)),
+		experience(checkParameter(EXP)),
+		racecraft(checkParameter(RC)),
+		consistency(checkParameter(CT)),
+		fuelManagement(checkParameter(FM)),
+		tyreManagement(checkParameter(TM)) {
 	}
 
-	void setPace(unsigned int parameter) { checkParameter(parameter); pace = parameter; }
-	void setExperience(unsigned int parameter) { checkParameter(parameter); experience = parameter; }
-	void setRacecraft(unsigned int parameter) { checkParameter(parameter); racecraft = parameter; }
-	void setConsistency(unsigned int parameter) { checkParameter(parameter); consistency = parameter; }
-	void setFuelManagement(unsigned int parameter) { checkParameter(parameter); fuelManagement = parameter; }
-	void setTyreManagement(unsigned int parameter) { checkParameter(parameter); tyreManagement = parameter; }
+	void setPace(unsigned int parameter) { pace = checkParameter(parameter); }
+	void setExperience(unsigned int parameter) { experience = checkParameter(parameter); }
+	void setRacecraft(unsigned int parameter) { racecraft = checkParameter(parameter); }
+	void setConsistency(unsigned int parameter) { consistency = checkParameter(parameter); }
+	void setFuelManagement(unsigned int parameter) { fuelManagement = checkParameter(parameter); }
+	void setTyreManagement(unsigned int parameter) { tyreManagement = checkParameter(parameter); }
 
 	unsigned int getPace() const { return pace; }
 	unsigned int getExperience() const { return experience; }
@@ -214,7 +183,8 @@ public:
 	unsigned int getTyreManagement() const { return tyreManagement; }
 
 	friend std::istream& operator>>(std::istream& is, DriverSkills& d) {
-		if (is >> d.driver) {
+		// Читаем сначала базовую часть гонщика через явное приведение
+		if (is >> static_cast<Driver&>(d)) {
 			unsigned int pc, exp, rc, ct, fm, tm;
 			if (is >> pc >> exp >> rc >> ct >> fm >> tm) {
 				d.setPace(pc);
@@ -223,14 +193,14 @@ public:
 				d.setConsistency(ct);
 				d.setFuelManagement(fm);
 				d.setTyreManagement(tm);
-				if (is.good()) is.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // не падаем, если у последней строки нет перевода строки
+				if (is.good()) is.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 			}
 		}
 		return is;
 	}
 
 	void print() const {
-		driver.print();
+		Driver::print(); // вызываем родительский принт
 		std::cout << "               Pace: " << pace << " | Experience: " << experience
 			<< " | Racecraft: " << racecraft << " | Consistency: " << consistency
 			<< " | Fuel: " << fuelManagement << " | Tyres: " << tyreManagement << "\n";
@@ -273,7 +243,7 @@ public:
 		pitstopCrew = crew;
 	}
 
-	const std::string& getTeamName() const { return teamName; }
+	std::string_view getTeamName() const { return teamName; }
 	unsigned int getPitstopCrew() const { return pitstopCrew; }
 
 	const std::array<Car, 2>& getCars() const { return teamCars; }
@@ -327,126 +297,92 @@ public:
 	}
 };
 
-// ======================= Track =======================
-class Track {
-private:
-	std::string  trackName;
-	RoadCondition condition;
-	double trackLength; // in kilometers
-	unsigned int numberOfCorners;
-	double pitlaneLost; //time lost in pitlane in seconds
-	unsigned int trackTemperature; // in Celsius
-	double baseLaptime; //in seconds on dry track and medium tires
-	double abrasivenessAsphalt; // from 0.0 to 1.0
+double calculateCurrentLaptime(const Track& track, DriverStrategy strategy, double currentWear, WeatherCondition weather) {
+	double laptimeModifier = 1.0;
 
-	static void checkTrackName(std::string_view name) {
-		if (name.size() < 2 || name.size() > 50) { throw std::invalid_argument("Track name must be between 2 and 50 characters"); }
-	}
+	TireType tire = strategy.getCurrentTire();
 
-	static void checkTrackLength(double length) {
-		if (length < 3.3 || length > 7.0) { throw std::invalid_argument("Track length must be between 3.3 and 7.0 kilometers"); }
+	if (tire == TireType::Soft) laptimeModifier -= 0.010;
+	if (tire == TireType::Hard) laptimeModifier += 0.015;
+	if (tire == TireType::Intermediate) laptimeModifier += 0.040;
+	if (tire == TireType::Wet) laptimeModifier += 0.080;
+
+	if (currentWear >= 15.0 && currentWear < 70.0) {
+		laptimeModifier += (currentWear / 70.0) * 0.015;
 	}
-	static void checkNumberOfCorners(unsigned int corners) {
-		if (corners < 5 || corners > 25) { throw std::invalid_argument("Number of corners must be between 5 and 25"); }
+	else if (currentWear >= 70.0 && currentWear < 85.0) {
+		laptimeModifier += 0.045;
 	}
-	static void checkPitlaneLost(double lost) {
-		if (lost < 10.0 || lost > 40.0) { throw std::invalid_argument("Pitlane lost time must be between 10.0 and 40.0 seconds"); }
-	}
-	static void checkTrackTemperature(unsigned int temperature) {
-		if (temperature < 15 || temperature > 60) { throw std::invalid_argument("Track temperature must be between 15 and 60 degrees Celsius"); }
-	}
-	static void checkAbrasivenessAsphalt(double abrasiveness) {
-		if (abrasiveness < 0.0 || abrasiveness > 1.0) { throw std::invalid_argument("Abrasiveness of asphalt must be between 0.0 and 1.0"); }
-	}
-	static void checkBaseLaptime(double laptime) {
-		if (laptime < 60.0 || laptime > 120.0) { throw std::invalid_argument("Base laptime must be between 60.0 and 120.0 seconds"); }
+	else if (currentWear >= 85.0) {
+		laptimeModifier += 0.100;
 	}
 
-public:
+	RoadCondition condition = track.getRoadCondition();
 
-	Track() : trackName("Unknown"), condition(RoadCondition::Dry), trackLength(5.0), numberOfCorners(15), pitlaneLost(20.0),
-		trackTemperature(30), baseLaptime(90.0), abrasivenessAsphalt(0.5) {
+	if (condition == RoadCondition::Dry) {
+		if (tire == TireType::Intermediate) laptimeModifier += 0.04;
+		else if (tire == TireType::Wet)     laptimeModifier += 0.08;
 	}
-	Track(std::string name, RoadCondition cond, double length, unsigned int corners, double lost, unsigned int temperature,
-		double laptime, double abrasiveness) : trackName(name), condition(cond), trackLength(length), numberOfCorners(corners), pitlaneLost(lost),
-		trackTemperature(temperature), baseLaptime(laptime), abrasivenessAsphalt(abrasiveness) {
-		checkTrackName(name);
-		checkTrackLength(length);
-		checkNumberOfCorners(corners);
-		checkPitlaneLost(lost);
-		checkTrackTemperature(temperature);
-		checkBaseLaptime(laptime);
-		checkAbrasivenessAsphalt(abrasiveness);
-	}
-
-	void setTrackName(std::string_view name) { checkTrackName(name); trackName = name; }
-	void setTrackCondition(RoadCondition cond) { condition = cond; }
-	void setTrackLength(double length) { checkTrackLength(length); trackLength = length; }
-	void setNumberOfCorners(unsigned int corners) { checkNumberOfCorners(corners); numberOfCorners = corners; }
-	void setPitlaneLost(double lost) { checkPitlaneLost(lost); pitlaneLost = lost; }
-	void setTrackTemperature(unsigned int temperature) { checkTrackTemperature(temperature); trackTemperature = temperature; }
-	void setBaseLaptime(double laptime) { checkBaseLaptime(laptime); baseLaptime = laptime; }
-	void setAbrasivenessAsphalt(double abrasiveness) { checkAbrasivenessAsphalt(abrasiveness); abrasivenessAsphalt = abrasiveness; }
-
-	double getBaseLaptime() const { return baseLaptime; }
-	RoadCondition getRoadCondition() const { return condition; }
-	unsigned int getTrackTemperature() const { return trackTemperature; }
-
-	friend std::istream& operator>>(std::istream& is, Track& track) {
-		std::string line;
-
-		while (std::getline(is, line)) {
-			if (!line.empty() && line.back() == '\r') line.pop_back();
-			if (!line.empty()) break;
+	else if (condition == RoadCondition::Damp || condition == RoadCondition::Drying) {
+		if (tire == TireType::Soft || tire == TireType::Medium || tire == TireType::Hard) {
+			laptimeModifier += 0.035;
 		}
-
-		if (line.empty()) return is;
-
-		track.setTrackName(line);
-
-		double length, pitlost, laptime, abrasiveness;
-
-		unsigned int corners;
-
-		if (is >> length >> corners >> pitlost >> laptime >> abrasiveness) {
-			track.setTrackLength(length);
-			track.setNumberOfCorners(corners);
-			track.setPitlaneLost(pitlost);
-			track.setBaseLaptime(laptime);
-			track.setAbrasivenessAsphalt(abrasiveness);
-			if (is.good()) is.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // не падаем, если у последней строки нет перевода строки
+		else if (tire == TireType::Intermediate) laptimeModifier += 0.015;
+		else if (tire == TireType::Wet)          laptimeModifier += 0.050;
+	}
+	else if (condition == RoadCondition::Wet) {
+		if (tire == TireType::Soft || tire == TireType::Medium || tire == TireType::Hard) {
+			laptimeModifier += 0.250;
 		}
-
-		return is;
+		else if (tire == TireType::Intermediate) laptimeModifier += 0.060;
+		else if (tire == TireType::Wet)          laptimeModifier += 0.040;
+	}
+	else if (condition == RoadCondition::Flooded) {
+		if (tire == TireType::Soft || tire == TireType::Medium || tire == TireType::Hard) {
+			laptimeModifier += 0.500;
+		}
+		else if (tire == TireType::Intermediate) laptimeModifier += 0.200;
+		else if (tire == TireType::Wet)          laptimeModifier += 0.080;
 	}
 
-	void print() const {
-		std::cout << "Track: " << trackName << "  \nCondition: " << static_cast<int>(condition)
-			<< "  \nLength: " << trackLength << " km  \nCorners: " << numberOfCorners
-			<< "  \nPitlane lost: " << pitlaneLost << " s  \nTemperature: " << trackTemperature
-			<< " C  \nBase laptime: " << baseLaptime << " s  \nAbrasiveness: " << abrasivenessAsphalt << "\n";
+	switch (weather) {
+	case WeatherCondition::Cloudy:    laptimeModifier += 0.002; break;
+	case WeatherCondition::LightRain: laptimeModifier += 0.010; break;
+	case WeatherCondition::Rainy:     laptimeModifier += 0.030; break;
+	case WeatherCondition::Stormy:    laptimeModifier += 0.080; break;
+	default: break;
 	}
-};
 
-class TrackCondition : public Track {
-private:
-	WeatherCondition weather;
-
-public: 
-	TrackCondition() : Track(), weather(WeatherCondition::Sunny) {
+	switch (strategy.getEngineMode()) {
+	case EngineMode::Push:    laptimeModifier -= 0.006; break; // -0.6%
+	case EngineMode::Economy: laptimeModifier += 0.010; break; // +1.0%
+	default: break;
 	}
-	TrackCondition(std::string name, RoadCondition cond, double length, unsigned int corners, double lost, unsigned int temperature,
-		double laptime, double abrasiveness, WeatherCondition wCond) :
-		Track(name, cond, length, corners, lost, temperature, laptime, abrasiveness), weather(wCond) {
-	}
-	void setWeatherCondition(WeatherCondition wCond) { weather = wCond; }
-	WeatherCondition getWeatherCondition() const { return weather; }
 
-	void print() const {
-		Track::print();
-		std::cout << "Weather Condition: " << static_cast<int>(weather) << "\n";
-	}	
-};
+	switch (strategy.getBoostMode()) {
+	case BoostMode::Overtake: laptimeModifier -= 0.013; break; // -1.3%
+	case BoostMode::HotLap:   laptimeModifier -= 0.011; break; // -1.1%
+	case BoostMode::Medium:   laptimeModifier -= 0.003; break; // -0.3%
+	case BoostMode::None:     laptimeModifier += 0.005; break; // +0.5%
+	}
+
+	switch (strategy.getDriverRisk()) {
+	case DriverRisk::Qualifying: laptimeModifier -= 0.006; break; // -0.6%
+	case DriverRisk::Push:      laptimeModifier -= 0.003; break; // -0.3%
+	case DriverRisk::Safe:      laptimeModifier += 0.008; break; // +0.8%
+	default: break; 
+	}
+
+	switch (strategy.getTireMode()) {
+	case TireMode::FullPace: laptimeModifier -= 0.009; break; // -0.9%
+	case TireMode::Keep:     laptimeModifier += 0.013; break; // +1.3%
+	default: break;
+	}
+
+	return track.getBaseLaptime() * laptimeModifier;
+}
+
+
 
 int main() {
 	std::ifstream file("Teams/teams.dat");
@@ -548,6 +484,47 @@ int main() {
 	default:
 		break;
 	}
+
+	//strategy.setCurrentTire(TireType::Soft);
+	//strategy.setCurrentTire(TireType::Hard);
+	DriverSkills skills;
+	skills.setTyreManagement(75);
+	RaceEnvironment track;
+	//track.setAbrasivenessAsphalt(1.0);
+
+	for (int i{ 0 }; i < 90; ++i) {
+		try {
+			
+		double tireDegradationpPerLap = calculateTireWear(strategy.getCurrentTire(), strategy.getTireMode(), strategy.getTireCondition(), 30, track.getAbrasivenessAsphalt());
+		double currentTireCondition = strategy.getTireCondition();
+		currentTireCondition += tireDegradationpPerLap * (1.5 - 0.005 * skills.getTyreManagement());
+		if (currentTireCondition > 100.0) {
+			throw std::invalid_argument("Tire puncture!");
+		}
+		strategy.setTireCondition(currentTireCondition);
+
+		strategy.setTireLaps(strategy.getTireLaps() + 1);
+
+		std::cout << "\nTyre condition after lap " << i + 1 << ": " << strategy.getTireCondition() << "% | Tire laps: " << strategy.getTireLaps();
+		
+		double laptime = calculateCurrentLaptime(track, strategy, strategy.getTireCondition(), track.getWeatherCondition());
+
+		unsigned int minutes{ static_cast<unsigned int>(laptime / 60) };
+
+		unsigned int seconds{ static_cast<unsigned int>(laptime - (minutes * 60)) };
+
+		unsigned int miliseconds{ static_cast<unsigned int>((laptime - (minutes * 60) - seconds) * 1000) };
+
+		std::cout << "\n Lap " << i + 1 << ": " << minutes << ":" << seconds << "." << ((miliseconds < 10) ? "00" : ((miliseconds < 100) ? "0" : "")) << miliseconds;
+		
+		}
+
+		catch(const std::exception& e) {
+			std::cerr << "\nError (lap " << i + 1 << "): " << e.what() << "\n";
+			return 1;
+		}
+	}
+
 
 	return 0;
 }

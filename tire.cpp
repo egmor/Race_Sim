@@ -17,7 +17,7 @@ TireConfig getTireConfig(TireType tire) {
 	}
 }
 
-double calculateTireWear(TireType tire, TireMode mode, double condition, int temperature) {
+double calculateTireWear(TireType tire, TireMode mode, double condition, int temperature, double abrasiveness) {
 	TireConfig config = getTireConfig(tire);
 
 	double baseTCPL = 1.0;
@@ -43,5 +43,5 @@ double calculateTireWear(TireType tire, TireMode mode, double condition, int tem
 		baseTCPL *= config.overheatMultiplier;
 	}
 
-	return config.baseWear * baseTCPL;
+	return config.baseWear * baseTCPL * (0.5 + abrasiveness);
 }
