@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <string>
 #include <fstream>
+#include <algorithm>
 #include <vector>
 #include <array>
 #include <limits>
@@ -75,7 +76,6 @@ private:
 	unsigned int driverWeight;
 	unsigned int driverNumber;
 
-	// Функции теперь static и возвращают проверенное значение для списка инициализации
 	static std::string checkDriverNSN(std::string name) {
 		if (name.size() < 2 || name.size() > 20) { throw std::invalid_argument("Driver name/surname must be between 2 and 20 characters"); }
 		return name;
@@ -96,7 +96,6 @@ private:
 public:
 	Driver() : driverName("Unknown"), driverSurname("Unknown"), driverAge(18), driverWeight(80), driverNumber(99) {}
 
-	// ИСПРАВЛЕНО: Принимаем строки по значению и используем std::move — это быстро и 100% безопасно
 	Driver(std::string name, std::string surname, unsigned int age, unsigned int weight, unsigned int number) :
 		driverName(checkDriverNSN(std::move(name))),
 		driverSurname(checkDriverNSN(std::move(surname))),
@@ -111,7 +110,6 @@ public:
 	void setDriverWeight(unsigned int weight) { driverWeight = checkDriverWeight(weight); }
 	void setDriverNumber(unsigned int number) { driverNumber = checkDriverNumber(number); }
 
-	// ИСПРАВЛЕНО: возвращаем ссылки на постоянные строки (const std::string&), защищая память
 	const std::string& getDriverName() const { return driverName; }
 	const std::string& getDriverSurname() const { return driverSurname; }
 	unsigned int getDriverAge() const { return driverAge; }
@@ -139,7 +137,7 @@ public:
 };
 
 // ======================= DriverSkills =======================
-class DriverSkills : public Driver { // ИСПРАВЛЕНО: вернули наследование
+class DriverSkills : public Driver { 
 private:
 	unsigned int pace;
 	unsigned int experience;
@@ -156,7 +154,6 @@ private:
 public:
 	DriverSkills() : Driver(), pace(50), experience(50), racecraft(50), consistency(50), fuelManagement(50), tyreManagement(50) {}
 
-	// ИСПРАВЛЕНО: Инициализируем родительский класс, а свои поля проверяем статической функцией
 	DriverSkills(std::string name, std::string surname, unsigned int age, unsigned int weight, unsigned int number,
 		unsigned int PC, unsigned int EXP, unsigned int RC, unsigned int CT, unsigned int FM, unsigned int TM) :
 		Driver(std::move(name), std::move(surname), age, weight, number),
@@ -183,7 +180,6 @@ public:
 	unsigned int getTyreManagement() const { return tyreManagement; }
 
 	friend std::istream& operator>>(std::istream& is, DriverSkills& d) {
-		// Читаем сначала базовую часть гонщика через явное приведение
 		if (is >> static_cast<Driver&>(d)) {
 			unsigned int pc, exp, rc, ct, fm, tm;
 			if (is >> pc >> exp >> rc >> ct >> fm >> tm) {
@@ -200,7 +196,7 @@ public:
 	}
 
 	void print() const {
-		Driver::print(); // вызываем родительский принт
+		Driver::print(); 
 		std::cout << "               Pace: " << pace << " | Experience: " << experience
 			<< " | Racecraft: " << racecraft << " | Consistency: " << consistency
 			<< " | Fuel: " << fuelManagement << " | Tyres: " << tyreManagement << "\n";
@@ -382,7 +378,12 @@ double calculateCurrentLaptime(const Track& track, DriverStrategy strategy, doub
 	return track.getBaseLaptime() * laptimeModifier;
 }
 
-
+struct DriverLaptime {
+	DriverSkills driver;
+	double laptime{};
+	DriverStrategy strategy;
+	double total_time{};
+};
 
 int main() {
 	std::ifstream file("Teams/teams.dat");
@@ -485,46 +486,83 @@ int main() {
 		break;
 	}
 
-	//strategy.setCurrentTire(TireType::Soft);
-	//strategy.setCurrentTire(TireType::Hard);
-	DriverSkills skills;
-	skills.setTyreManagement(75);
 	RaceEnvironment track;
-	//track.setAbrasivenessAsphalt(1.0);
 
-	for (int i{ 0 }; i < 90; ++i) {
-		try {
-			
-		double tireDegradationpPerLap = calculateTireWear(strategy.getCurrentTire(), strategy.getTireMode(), strategy.getTireCondition(), 30, track.getAbrasivenessAsphalt());
-		double currentTireCondition = strategy.getTireCondition();
-		currentTireCondition += tireDegradationpPerLap * (1.5 - 0.005 * skills.getTyreManagement());
-		if (currentTireCondition > 100.0) {
-			throw std::invalid_argument("Tire puncture!");
-		}
-		strategy.setTireCondition(currentTireCondition);
 
-		strategy.setTireLaps(strategy.getTireLaps() + 1);
+	std::vector<DriverLaptime> DriversLaptime{};
 
-		std::cout << "\nTyre condition after lap " << i + 1 << ": " << strategy.getTireCondition() << "% | Tire laps: " << strategy.getTireLaps();
-		
-		double laptime = calculateCurrentLaptime(track, strategy, strategy.getTireCondition(), track.getWeatherCondition());
-
-		unsigned int minutes{ static_cast<unsigned int>(laptime / 60) };
-
-		unsigned int seconds{ static_cast<unsigned int>(laptime - (minutes * 60)) };
-
-		unsigned int miliseconds{ static_cast<unsigned int>((laptime - (minutes * 60) - seconds) * 1000) };
-
-		std::cout << "\n Lap " << i + 1 << ": " << minutes << ":" << seconds << "." << ((miliseconds < 10) ? "00" : ((miliseconds < 100) ? "0" : "")) << miliseconds;
-		
-		}
-
-		catch(const std::exception& e) {
-			std::cerr << "\nError (lap " << i + 1 << "): " << e.what() << "\n";
-			return 1;
+	for (const auto& team : teams) {
+		for (const auto& driverSkill : team.getDrivers()) {
+			DriverLaptime temp;
+			temp.driver = driverSkill;
+			temp.strategy;
+			temp.laptime = 0;
+			temp.total_time = 0;
+			DriversLaptime.push_back(temp);
 		}
 	}
 
+	for (int lap{ 0 }; lap < 90; ++lap) {
+		for (std::size_t i{ 0 }; i < DriversLaptime.size(); ++i) {
+			try {
+				double tireDegradationpPerLap = calculateTireWear(DriversLaptime[i].strategy.getCurrentTire(), DriversLaptime[i].strategy.getTireMode(), DriversLaptime[i].strategy.getTireCondition(), 30, track.getAbrasivenessAsphalt());
+				double currentTireCondition = DriversLaptime[i].strategy.getTireCondition();
+				currentTireCondition += tireDegradationpPerLap * (1.5 - 0.005 * DriversLaptime[i].driver.getTyreManagement());
+				if (currentTireCondition > 100.0) {
+					throw std::invalid_argument("Tire puncture!");
+				}
+				DriversLaptime[i].strategy.setTireCondition(currentTireCondition);
+
+				DriversLaptime[i].strategy.setTireLaps(DriversLaptime[i].strategy.getTireLaps() + 1);
+
+				double laptime = calculateCurrentLaptime(track, DriversLaptime[i].strategy, DriversLaptime[i].strategy.getTireCondition(), track.getWeatherCondition());
+
+				DriversLaptime[i].laptime = laptime;
+
+				DriversLaptime[i].total_time += laptime;
+
+			}
+
+			catch (const std::exception& e) {
+				std::cerr << "\n\nError (lap " << lap + 1 << "): " << e.what() << "| Driver: " << DriversLaptime[i].driver.getDriverSurname() << "\n";
+				return 1;
+			}
+		}
+
+		std::cout << "\n------------------------------------\nLAP " << lap + 1 << ":\n";
+
+		std::sort(DriversLaptime.begin(), DriversLaptime.end(), [](const DriverLaptime& a, const DriverLaptime& b) {
+			return a.total_time < b.total_time;});
+
+
+
+		for (std::size_t i{ 0 }; i < DriversLaptime.size(); ++i) {
+			unsigned int hours{ static_cast<unsigned int>(DriversLaptime[i].total_time / 3600) };
+
+			unsigned int minutes{ static_cast<unsigned int>(DriversLaptime[i].laptime / 60) };
+			unsigned int total_minutes{ static_cast<unsigned int>((DriversLaptime[i].total_time - hours * 3600) / 60) };
+
+			unsigned int seconds{ static_cast<unsigned int>(DriversLaptime[i].laptime - (minutes * 60)) };
+			unsigned int total_seconds{ static_cast<unsigned int>(DriversLaptime[i].total_time - (total_minutes * 60)) };
+
+			unsigned int miliseconds{ static_cast<unsigned int>((DriversLaptime[i].laptime - (minutes * 60) - seconds) * 1000) };
+			std::cout << "\n" << i + 1 << ". " << DriversLaptime[i].driver.getDriverSurname() << " | " << ": "
+				<< minutes << ":" << seconds << "." << ((miliseconds < 10) ? "00" : ((miliseconds < 100) ? "0" : "")) << miliseconds
+				<< " | Total time: " << hours << ":" << (total_minutes < 10 ? "0" : "") << total_minutes << ":" << (total_seconds < 10 ? "0" : "")
+				<< total_seconds;
+		}
+	}
 
 	return 0;
 }
+
+
+
+/*unsigned int minutes{static_cast<unsigned int>(laptime / 60)};
+
+unsigned int seconds{ static_cast<unsigned int>(laptime - (minutes * 60)) };
+
+unsigned int miliseconds{ static_cast<unsigned int>((laptime - (minutes * 60) - seconds) * 1000) };
+
+std::cout << "\n Lap " << i + 1 << ": " << minutes << ":" << seconds << "." << ((miliseconds < 10) ? "00" : ((miliseconds < 100) ? "0" : "")) << miliseconds;
+*/

@@ -2,9 +2,8 @@
 #include <iostream>
 #include <limits>
 #include <stdexcept>
-#include <istream> // ИСПРАВЛЕНО: Явное подключение потока ввода
+#include <istream> 
 
-// ИСПРАВЛЕНО: Все проверки теперь возвращают проверенные типы данных
 std::string Track::checkTrackName(std::string name) {
 	if (name.size() < 2 || name.size() > 50) { throw std::invalid_argument("Track name must be between 2 and 50 characters"); }
 	return name;
@@ -38,7 +37,6 @@ Track::Track() : trackName("Unknown"), condition(RoadCondition::Dry), trackLengt
 trackTemperature(30), baseLaptime(90.0), abrasivenessAsphalt(0.5) {
 }
 
-// ИСПРАВЛЕНО: Безопасный конструктор через список инициализации с вызовом проверок
 Track::Track(std::string name, RoadCondition cond, double length, unsigned int corners, double lost, unsigned int temperature,
 	double laptime, double abrasiveness)
 	: trackName(checkTrackName(name)),
@@ -65,7 +63,6 @@ RoadCondition Track::getRoadCondition() const { return condition; }
 unsigned int Track::getTrackTemperature() const { return trackTemperature; }
 double Track::getAbrasivenessAsphalt() const { return abrasivenessAsphalt; }
 
-// ИСПРАВЛЕНО: Убрано ключевое слово friend (оно пишется только в .h)
 std::istream& operator>>(std::istream& is, Track& track) {
 	std::string line;
 	while (std::getline(is, line)) {
@@ -96,7 +93,6 @@ void Track::print() const {
 		<< " C  \nBase laptime: " << baseLaptime << " s  \nAbrasiveness: " << abrasivenessAsphalt << "\n";
 }
 
-// ИСПРАВЛЕНО: Имя класса изменено для соответствия ООП-логике
 RaceEnvironment::RaceEnvironment() : Track(), weather(WeatherCondition::Sunny) {}
 
 RaceEnvironment::RaceEnvironment(std::string name, RoadCondition cond, double length, unsigned int corners, double lost, unsigned int temperature,

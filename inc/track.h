@@ -3,7 +3,7 @@
 
 #include <string>
 #include <string_view>
-#include <iostream> // Важно для istream
+#include <iostream> 
 
 enum class RoadCondition { Dry, Wet, Damp, Drying, Flooded, };
 enum class WeatherCondition { Sunny, Cloudy, LightRain, Rainy, Stormy, };
@@ -19,7 +19,6 @@ private:
 	double baseLaptime;
 	double abrasivenessAsphalt;
 
-	// ИСПРАВЛЕНО: Функции теперь возвращают проверенное значение для списка инициализации
 	static std::string checkTrackName(std::string name);
 	static double checkTrackLength(double length);
 	static unsigned int checkNumberOfCorners(unsigned int corners);
@@ -51,7 +50,6 @@ public:
 	void print() const;
 };
 
-// Класс переименован в RaceEnvironment, чтобы убрать путаницу с условиями трассы
 class RaceEnvironment : public Track {
 private:
 	WeatherCondition weather;
