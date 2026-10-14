@@ -18,27 +18,24 @@
     <ClCompile Include="main.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="tire.cpp">
+    <ClCompile Include="src\strategy.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="strategy.cpp">
+    <ClCompile Include="src\tire.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="laptime.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
-    <ClCompile Include="track.cpp">
+    <ClCompile Include="src\track.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="tire.h">
+    <ClInclude Include="inc\strategy.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="strategy.h">
+    <ClInclude Include="inc\tire.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="track.h">
+    <ClInclude Include="inc\track.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

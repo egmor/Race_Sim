@@ -111,6 +111,9 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalHeaderUnitDependencies>
+      </AdditionalHeaderUnitDependencies>
+      <AdditionalIncludeDirectories>$(ProjectDir)inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -139,16 +142,15 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="laptime.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="strategy.cpp" />
-    <ClCompile Include="tire.cpp" />
-    <ClCompile Include="track.cpp" />
+    <ClCompile Include="src\strategy.cpp" />
+    <ClCompile Include="src\tire.cpp" />
+    <ClCompile Include="src\track.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="strategy.h" />
-    <ClInclude Include="tire.h" />
-    <ClInclude Include="track.h" />
+    <ClInclude Include="inc\strategy.h" />
+    <ClInclude Include="inc\tire.h" />
+    <ClInclude Include="inc\track.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
